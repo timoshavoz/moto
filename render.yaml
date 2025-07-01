@@ -7,4 +7,4 @@ services:
     plan: free
     envVars:
       - key: TOKEN
-        value: your_bot_token_here
+        value: 8056093445:AAFV9gHNtucMONEDf5DNzXi7dX6IITFGJPQ
