@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: casino-bot
+    env: python
+    buildCommand: ""
+    startCommand: python casino_bot.py
+    plan: free
+    envVars:
+      - key: TOKEN
+        value: your_bot_token_here
