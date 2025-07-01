@@ -3,8 +3,10 @@ import random
 import asyncio
 import time
 import os
+import threading
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
+from flask import Flask
 
 # Получаем токен из переменной окружения
 TOKEN = os.getenv('TOKEN')
@@ -29,6 +31,17 @@ def get_user_data(user_id):
             'last_bonus': 0
         }
     return users[user_id]
+
+# Flask-приложение для минимального HTTP-сервера
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Казино-бот работает!"
+
+def run_flask():
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
 
 # Главное меню
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -179,8 +192,13 @@ if __name__ == '__main__':
     if not TOKEN:
         print("Ошибка: переменная окружения TOKEN не установлена.")
     else:
-        app = ApplicationBuilder().token(TOKEN).build()
-        app.add_handler(CommandHandler('start', start))
-        app.add_handler(CallbackQueryHandler(button))
-        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-        app.run_polling()
+        # Запускаем Flask в отдельном потоке
+        flask_thread = threading.Thread(target=run_flask)
+        flask_thread.start()
+
+        # Запускаем Telegram-бота
+        app_bot = ApplicationBuilder().token(TOKEN).build()
+        app_bot.add_handler(CommandHandler('start', start))
+        app_bot.add_handler(CallbackQueryHandler(button))
+        app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        app_bot.run_polling()
